@@ -1,5 +1,6 @@
 package com.tiennguyen.learning_spring_boot.service;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.tiennguyen.learning_spring_boot.DAO.FakeDataDao;
 import com.tiennguyen.learning_spring_boot.DAO.UserDao;
 import com.tiennguyen.learning_spring_boot.model.User;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -19,9 +21,20 @@ public class UserService {
         this.userDao = userDao ;
     }
 
-    public List<User> getAllUser(){
+    public List<User> getAllUser(Optional<String> gender){
+        List<User> users = userDao.selectAllUsers();
+        if(!gender.isPresent()){
+            return users;
+        }
+        try{
+            User.Gender theGender = User.Gender.valueOf(gender.get().toUpperCase());
+            return users.stream()
+                    .filter(user -> user.getGender().equals(theGender))
+                    .collect(Collectors.toList());
+        }catch (Exception e){
+            throw new IllegalStateException("Invalid gender", e);
+        }
 
-        return userDao.selectAllUsers();
     }
 
     public Optional<User> getUser(UUID userUid) {
